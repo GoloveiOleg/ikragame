@@ -1,0 +1,530 @@
+<html>
+<head>
+</head>
+<body>
+
+<div id="points" >
+<img src="https://iili.io/H37bwqQ.png" alt="Enemybulet" border="0">
+</div>
+<img src="https://iili.io/H37Yxff.png" style="position:absolute; left:100px; top:100px;  	" id="ScaryO">	
+ <img src="https://iili.io/H37enl2.png" style="position:absolute; left:300px; top:300px;" id="ikra"> 
+ <img src="https://iili.io/H37hk1S.png" style="position:absolute; left:300px; top:300px;" id="Enemy"> 
+ <img src="https://iili.io/H37WayJ.png" style="position:absolute; left:300px; top:300px;" id="Gun"> 
+
+
+ <!--img src="bulet.png" style="position:absolute; left:300px; top:300px;" id="bulet"--> 
+
+
+<script type="text/javascript">
+		var points = 0
+	document.getElementById('points').innerHTML = "" + points;
+
+  console.log(0)
+class GameMob {
+	constructor(src,id, top, left,whatch){
+		this.src=src
+		this.id=id
+		this.avatar=document.getElementById(id)
+		console.log(1, this.avatar)
+		this.left=left
+		this.top=top
+		this.apply()	
+		this.th = this	
+		this.whatch=whatch
+		this.rotate = 0
+	}
+test(){
+	this.apply()
+				
+} 
+	apply(){
+			if(this.avatar){
+				this.avatar.style.top=this.top
+				this.avatar.style.left=this.left
+			}
+	}
+	rotating(){
+		this.avatar.style.transform = 'rotate(' + this.rotate + 'deg)';
+		this.rotate = this.rotate + 2;
+	}
+
+
+	move(keys){
+		var thisArg=this;
+		keys.forEach(function(direction, i, a){
+
+		if(direction == "ArrowRight"){
+			thisArg.left = thisArg.left+10;
+		}
+		if(direction == "ArrowLeft"){
+			thisArg.left = thisArg.left-10;
+		}	
+		if(direction == "ArrowDown"){
+			thisArg.top = thisArg.top+10
+		}
+		if(direction == "ArrowUp"){
+			thisArg.top = thisArg.top-10
+		}
+
+
+		})
+		
+		this.teleport();
+		this.apply();
+		this.death();
+
+	}
+	teleport(){
+		if(this.top<0){
+			this.top=600;	
+		}
+		if(this.top>601){
+			this.top=1;
+		}
+		if(this.left > 1300){
+			this.left = 2;
+		}
+		if(this.left < 1){
+			this.left = 1299;
+		}
+	}
+
+isintersect(Rec1, Rec2){
+	
+	if(Rec2.bottom<Rec1.top||Rec2.top>Rec1.bottom||Rec2.right<Rec1.left||Rec2.left>Rec1.right){
+		return  false
+	}else{
+		return true
+	}
+}
+death(){
+
+	if( this.whatch &&
+					this.isintersect(
+						this.avatar.getBoundingClientRect(),
+						this.whatch.avatar.getBoundingClientRect()
+					)
+				){		
+					console.log("AAAAAAAAAAA!!!!!");
+					points = points = points + this.profit;
+					document.getElementById('points').innerHTML = "" + points;
+				this.whatch.left= Math.random()*1300;
+				this.whatch.top= Math.random()*600;
+				this.whatch.apply();
+				return true;
+
+				}
+}
+
+}
+
+
+class Ikra extends GameMob {
+	direction = {};
+	steps = 0;
+	choose_direction(){
+		this.steps=Math.floor(Math.random()*100);
+		this.direction = {
+			x: Math.floor(Math.random()*5)-2,
+			y: Math.floor(Math.random()*5)-2
+		};
+		
+
+	}
+	run(preditor, pray){
+		this.steps = this.steps - 1;
+		this.left = this.left + this.direction.x
+		this.top = this.top + this.direction.y
+		if(this.steps<=0){
+			this.choose_direction();
+
+		}
+
+		this.run_from(preditor, pray);
+	}
+
+	run_from(preditor, pray){
+		var preditorX = preditor.avatar.getBoundingClientRect().x
+		var preditorY = preditor.avatar.getBoundingClientRect().y
+		var prayX = pray.avatar.getBoundingClientRect().x
+		var prayY = pray.avatar.getBoundingClientRect().y
+		
+		if(preditorX>prayX){
+			pray.left-=1
+		}
+		if(preditorX<prayX){
+			pray.left+=1
+		}	
+		if(preditorY>prayY){
+			pray.top-=1
+		}
+		if(preditorY<prayY){
+			pray.top+=1
+		}
+		this.teleport();
+		this.rotating();
+		pray.apply();
+	}
+
+	move(e){
+	super.move(e)
+
+	}
+}
+
+
+class Bulet extends GameMob{
+	constructor( top, left, whatch, owner, profit, gravity,src ){
+		super("bulet.png","bulet", top, left)
+		this.avatar = document.createElement("img")
+		this.avatar.src=src
+		this.avatar.style.position = "absolute"
+		document.body.append(this.avatar)
+		this.profit=profit;
+		this.owner = owner;
+		this.gravity = gravity;
+		this.Bteleport()
+		this.whatch = whatch;
+		this.falling = 0
+		
+	}
+Bteleport(){
+	this.top = this.owner.top
+	this.left = this.owner.left
+	
+	this.apply()
+}
+moveFly(X , Y,){
+	this.left = this.left + X
+	this.top = this.top + Y
+  this.apply()
+  this.death()
+   this.top = this.top + this.falling
+  this.falling = this.falling + this.gravity
+ 
+}
+}
+
+
+class Enemy extends GameMob{
+	Chase(e){
+	var bigX = this.avatar.getBoundingClientRect().x-window.virus.avatar.getBoundingClientRect().x
+	var bigY = this.avatar.getBoundingClientRect().y-window.virus.avatar.getBoundingClientRect().y
+	var smallX = 6 / (Math.sqrt(bigY**2 + bigX**2) / bigX)
+	var smallY = 6 / (Math.sqrt(bigY**2 + bigX**2) / bigY)
+	this.left = this.left - (smallX )
+	this.top = this.top - (smallY )
+	this.apply();
+	this.endeath();
+	this.rotating();
+	}
+	endeath(){
+		if( this.whatch &&
+					this.isintersect(
+						this.avatar.getBoundingClientRect(),
+						this.whatch.avatar.getBoundingClientRect()
+					)
+				){		
+					console.log("AAAAAAAAAAA!!!!!");
+					points = points = points - 1
+					document.getElementById('points').innerHTML = "" + points;
+				this.whatch.left= Math.random()*1300;
+				this.whatch.top= Math.random()*600;
+				this.whatch.apply();
+				return true;
+
+				}
+	}
+}
+class Gun extends GameMob{
+	turnTo(someone){
+		var X1 = someone.avatar.getBoundingClientRect().x
+		var Y1 = someone.avatar.getBoundingClientRect().y
+		var X2 = this.avatar.getBoundingClientRect().x
+		var Y2 = this.avatar.getBoundingClientRect().y				
+		this.rotate =Math.atan((X1-X2)/(Y1-Y2)) * 180 / Math.PI * (-1)
+
+		this.avatar.style.transform = 'rotate(' + this.rotate + 'deg)';
+	}
+}
+
+
+
+  window.onload = function() {
+		window.ikra = new Ikra("Ikra.png","ikra",500,500,)
+		window.virus = new GameMob("ScaryO.png","ScaryO",101,100,)
+		window.enemy = new Enemy("Enemy.png","Enemy",500,100,virus)
+		window.gun = new Gun("Gun.png","Gun",599,650,)
+		var rotate = 0
+	var keys = []
+document.addEventListener("keydown",function(e){
+    var code = e.code;
+ 
+    if (keys.indexOf(code)<0){
+        keys.push(code);
+    }
+
+});
+
+document.addEventListener("keyup",function(e){
+  
+  keys.splice(keys.indexOf(e.code),1);
+  
+
+});
+		document.addEventListener("mousemove",function(e){
+		var X1 = e.clientX
+		var Y1 = e.clientY
+		var X2 = virus.avatar.getBoundingClientRect().x
+		var Y2 = virus.avatar.getBoundingClientRect().y				
+		virus.rotate =Math.atan((X1-X2)/(Y1-Y2)) * 180 / Math.PI * (-1)
+		if((Y1-Y2)<0){
+			virus.rotate = virus.rotate + 180;
+		}
+		
+
+		virus.avatar.style.transform = 'rotate(' + virus.rotate + 'deg)';
+		});
+		function evermove () {
+
+			var rotate = rotate||0 + 1
+			virus.move(keys);
+			ikra.run(virus, ikra);
+			enemy.Chase();
+			gun.turnTo(window.virus);
+			document.getElementById( "ScaryO" ).style.transform = 'rotate( ' + rotate + ' deg)';
+			
+		};
+		window.setInterval( evermove , 50);
+
+document.addEventListener("click",function(e){
+
+	var bigX = e.clientX-window.virus.avatar.getBoundingClientRect().x;
+	var bigY = e.clientY-window.virus.avatar.getBoundingClientRect().y;
+	var smallX = 15 / (Math.sqrt(bigY**2 + bigX**2) / bigX);
+	var smallY = 15 / (Math.sqrt(bigY**2 + bigX**2) / bigY);
+	var bulet = new Bulet ( "500", "500",window.ikra,window.virus,1,1/3,"https://iili.io/H37vN9I.png");
+	bulet.Bteleport();
+
+function bullet_do(id){
+		if(!bulet) return;
+		bulet.moveFly(smallX , smallY );
+		bulet.death()
+		if( bulet.top>650 || bulet.left > 1300 || bulet.left < 1 || 
+			bulet.isintersect(
+						bulet.avatar.getBoundingClientRect(),
+						enemy.avatar.getBoundingClientRect()
+					)
+			){
+			bulet.avatar.remove();
+			bulet=null;
+			clearInterval(id);
+		}
+
+}
+
+var id = setInterval(function(){
+	  bullet_do(id);
+}, 35);
+
+
+
+});
+	document.addEventListener("click",function(e){
+
+	var bigX = window.virus.avatar.getBoundingClientRect().x-window.gun.avatar.getBoundingClientRect().x;
+	var bigY = window.virus.avatar.getBoundingClientRect().y-window.gun.avatar.getBoundingClientRect().y;
+	var smallX = 20 / (Math.sqrt(bigY**2 + bigX**2) / bigX);
+	var smallY = 20 / (Math.sqrt(bigY**2 + bigX**2) / bigY);
+	var bulet = new Bulet ( "500", "500",window.virus,window.gun,-1,0,"https://iili.io/H37bwqQ.png");
+	bulet.Bteleport();
+
+function bullet_do(id){
+		if(!bulet) return;
+		bulet.moveFly(smallX , smallY );
+		bulet.death()
+		if( bulet.top>650 || bulet.left > 1300 || bulet.left < 1 || 
+			bulet.isintersect(
+						bulet.avatar.getBoundingClientRect(),
+						enemy.avatar.getBoundingClientRect()
+					)
+			){
+			bulet.avatar.remove();
+			bulet=null;
+			clearInterval(id);
+		}
+
+}
+
+var id = setInterval(function(){
+	  bullet_do(id);
+}, 35);
+
+
+
+});
+  };
+
+</script>
+ </body>
+ </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
